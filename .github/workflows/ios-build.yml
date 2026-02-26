@@ -23,13 +23,14 @@ jobs:
           xcodebuild -version
           swift --version
           xcodebuild -list -project iqraAI.xcodeproj
+          xcrun simctl list runtimes
 
       - name: Build (no signing)
         run: |
           xcodebuild build \
             -project iqraAI.xcodeproj \
             -scheme iqraAI \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -destination 'generic/platform=iOS Simulator' \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
@@ -40,7 +41,7 @@ jobs:
           xcodebuild test \
             -project iqraAI.xcodeproj \
             -scheme iqraAI \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
