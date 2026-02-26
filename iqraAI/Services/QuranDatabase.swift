@@ -201,6 +201,48 @@ final class QuranDatabase {
         }
     }
     
+    func fetchVerses(pageNumber: Int) -> [Verse] {
+        guard let db = quranDB else { return [] }
+        do {
+            return try db.read { db in
+                let rows = try Row.fetchAll(db, sql: """
+                    SELECT id, surah_number, verse_number, text_arabic, text_english,
+                           text_tajweed, juz_number, page_number
+                    FROM verses WHERE page_number = ?
+                    ORDER BY surah_number, verse_number
+                """, arguments: [pageNumber])
+                return rows.map { verseFromRow($0) }
+            }
+        } catch {
+            print("❌ Failed to fetch verses for page \(pageNumber): \(error)")
+            return []
+        }
+    }
+    
+    /// Hizb: 60 units across 604 pages → ~10 pages per hizb.
+    /// Each hizb number maps to a range of page_number values.
+    func fetchVerses(hizbNumber: Int) -> [Verse] {
+        guard let db = quranDB else { return [] }
+        // 604 pages / 60 hizbs ≈ 10.07 pages per hizb
+        let pagesPerHizb: Double = 604.0 / 60.0
+        let startPage = Int(floor(Double(hizbNumber - 1) * pagesPerHizb)) + 1
+        let endPage   = Int(floor(Double(hizbNumber) * pagesPerHizb))
+        do {
+            return try db.read { db in
+                let rows = try Row.fetchAll(db, sql: """
+                    SELECT id, surah_number, verse_number, text_arabic, text_english,
+                           text_tajweed, juz_number, page_number
+                    FROM verses WHERE page_number BETWEEN ? AND ?
+                    ORDER BY page_number, surah_number, verse_number
+                """, arguments: [startPage, endPage])
+                return rows.map { verseFromRow($0) }
+            }
+        } catch {
+            print("❌ Failed to fetch verses for hizb \(hizbNumber): \(error)")
+            return []
+        }
+    }
+    
     func searchVerses(query: String, limit: Int = 50) -> [Verse] {
         guard let db = quranDB else { return [] }
         

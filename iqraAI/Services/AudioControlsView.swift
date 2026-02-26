@@ -2,18 +2,30 @@ import SwiftUI
 
 /// Full audio controls shown in the verse reader toolbar
 struct AudioControlsView: View {
-    
+
     let surahNumber: Int
     let totalVerses: Int
-    
+
     @EnvironmentObject var audioPlayer: AudioPlayerService
     @State private var showReciterPicker = false
-    @State private var showSpeedPicker = false
-    
+
     private var isPlayingThisSurah: Bool {
         audioPlayer.currentSurah == surahNumber && audioPlayer.isActive
     }
-    
+
+    // Repeat cycle: 1× → 2× → 3× → ∞ → 1×
+    private let repeatCycle: [Int] = [1, 2, 3, 99]
+    private var repeatIndex: Int { repeatCycle.firstIndex(of: audioPlayer.repeatCount) ?? 0 }
+    private var repeatLabel: String {
+        switch audioPlayer.repeatCount {
+        case 1:  return "1×"
+        case 2:  return "2×"
+        case 3:  return "3×"
+        case 99: return "∞"
+        default: return "1×"
+        }
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             // Play / Pause entire surah
@@ -36,7 +48,7 @@ struct AudioControlsView: View {
                 .clipShape(Capsule())
             }
             .buttonStyle(.plain)
-            
+
             // Stop
             if isPlayingThisSurah {
                 Button {
@@ -51,9 +63,30 @@ struct AudioControlsView: View {
                 }
                 .buttonStyle(.plain)
             }
-            
+
             Spacer()
-            
+
+            // Repeat — cycles 1× → 2× → 3× → ∞ on each tap (PRD AP-06)
+            Button {
+                let nextIndex = (repeatIndex + 1) % repeatCycle.count
+                audioPlayer.repeatCount = repeatCycle[nextIndex]
+            } label: {
+                HStack(spacing: 2) {
+                    Image(systemName: "repeat")
+                        .font(.caption2)
+                    Text(repeatLabel)
+                        .font(.caption2.weight(.semibold))
+                }
+                .padding(.horizontal, 7)
+                .padding(.vertical, 4)
+                .background(audioPlayer.repeatCount > 1
+                    ? Color.green.opacity(0.15)
+                    : Color.secondary.opacity(0.1))
+                .foregroundStyle(audioPlayer.repeatCount > 1 ? .green : .secondary)
+                .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+
             // Speed
             Menu {
                 ForEach([0.5, 0.75, 1.0, 1.25, 1.5], id: \.self) { speed in
@@ -76,16 +109,13 @@ struct AudioControlsView: View {
                     .background(Color.secondary.opacity(0.1))
                     .clipShape(Capsule())
             }
-            
+
             // Reciter picker
             Menu {
                 ForEach(AudioPlayerService.defaultReciters) { reciter in
                     Button {
                         audioPlayer.currentReciter = reciter
-                        // Restart if playing
-                        if audioPlayer.isActive {
-                            audioPlayer.stop()
-                        }
+                        if audioPlayer.isActive { audioPlayer.stop() }
                     } label: {
                         HStack {
                             Text(reciter.name)

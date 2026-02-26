@@ -6,6 +6,7 @@ struct iqraAIApp: App {
     @StateObject private var quranVM = QuranViewModel()
     @StateObject private var settingsVM = SettingsViewModel()
     @StateObject private var audioPlayer = AudioPlayerService.shared
+    @StateObject private var translationService = TranslationService.shared
 
     /// Set to true only when the SHA-256 hash check passes.
     /// The UI is gated behind this — Quran text is never shown if false.
@@ -20,6 +21,7 @@ struct iqraAIApp: App {
                         .environmentObject(quranVM)
                         .environmentObject(settingsVM)
                         .environmentObject(audioPlayer)
+                        .environmentObject(translationService)
                         .preferredColorScheme(settingsVM.theme.colorScheme)
                 } else if integrityResult == nil {
                     // Still running checks

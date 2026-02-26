@@ -1,17 +1,19 @@
 import SwiftUI
 
 struct SurahListView: View {
-    
+
     @EnvironmentObject var quranVM: QuranViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
     @State private var searchText: String = ""
     @State private var selectedNavMode: NavMode = .surah
-    
+
     enum NavMode: String, CaseIterable {
         case surah = "Surah"
-        case juz = "Juz"
+        case juz   = "Juz"
+        case page  = "Page"
+        case hizb  = "Hizb"
     }
-    
+
     var filteredSurahs: [Surah] {
         if searchText.isEmpty { return quranVM.surahs }
         let query = searchText.lowercased()
@@ -22,10 +24,9 @@ struct SurahListView: View {
             String(surah.number).contains(query)
         }
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
-            // Navigation mode picker
             Picker("Browse by", selection: $selectedNavMode) {
                 ForEach(NavMode.allCases, id: \.self) { mode in
                     Text(mode.rawValue).tag(mode)
@@ -34,22 +35,21 @@ struct SurahListView: View {
             .pickerStyle(.segmented)
             .padding(.horizontal)
             .padding(.vertical, 8)
-            
-            // Content
+
             switch selectedNavMode {
-            case .surah:
-                surahList
-            case .juz:
-                juzList
+            case .surah: surahList
+            case .juz:   juzList
+            case .page:  pageList
+            case .hizb:  hizbList
             }
         }
         .navigationTitle("QariAI")
-        .searchable(text: $searchText, prompt: "Search surahs...")
+        .searchable(text: $searchText, prompt: "Search surahs…")
         .background(settingsVM.theme.backgroundColor)
     }
-    
+
     // MARK: - Surah List
-    
+
     private var surahList: some View {
         List(filteredSurahs) { surah in
             NavigationLink(value: surah) {
@@ -62,46 +62,106 @@ struct SurahListView: View {
             VerseReaderView(surahNumber: surah.number)
         }
     }
-    
+
     // MARK: - Juz List
-    
+
     private var juzList: some View {
         List(1...30, id: \.self) { juzNumber in
             NavigationLink {
                 JuzReaderView(juzNumber: juzNumber)
             } label: {
-                HStack {
-                    ZStack {
-                        Image(systemName: "star.fill")
-                            .font(.title2)
-                            .foregroundStyle(.green.opacity(0.2))
-                        Text("\(juzNumber)")
-                            .font(.caption.bold())
-                            .foregroundStyle(.green)
-                    }
-                    .frame(width: 40)
-                    
-                    Text("Juz \(juzNumber)")
-                        .font(.body)
-                    
-                    Spacer()
-                }
-                .padding(.vertical, 4)
+                navRowLabel(
+                    number: juzNumber,
+                    title: "Juz \(juzNumber)",
+                    subtitle: nil,
+                    icon: "star.fill"
+                )
             }
             .listRowBackground(settingsVM.theme.backgroundColor)
         }
         .listStyle(.plain)
     }
+
+    // MARK: - Page List (PRD QR-03 — 604 pages)
+
+    private var pageList: some View {
+        List(1...604, id: \.self) { pageNumber in
+            NavigationLink {
+                PageReaderView(pageNumber: pageNumber)
+            } label: {
+                navRowLabel(
+                    number: pageNumber,
+                    title: "Page \(pageNumber)",
+                    subtitle: nil,
+                    icon: "doc.text.fill"
+                )
+            }
+            .listRowBackground(settingsVM.theme.backgroundColor)
+        }
+        .listStyle(.plain)
+    }
+
+    // MARK: - Hizb List (PRD QR-03 — 60 hizbs)
+
+    private var hizbList: some View {
+        List(1...60, id: \.self) { hizbNumber in
+            NavigationLink {
+                HizbReaderView(hizbNumber: hizbNumber)
+            } label: {
+                navRowLabel(
+                    number: hizbNumber,
+                    title: "Hizb \(hizbNumber)",
+                    subtitle: hizbSubtitle(hizbNumber),
+                    icon: "book.fill"
+                )
+            }
+            .listRowBackground(settingsVM.theme.backgroundColor)
+        }
+        .listStyle(.plain)
+    }
+
+    // MARK: - Shared row label
+
+    private func navRowLabel(number: Int, title: String, subtitle: String?, icon: String) -> some View {
+        HStack {
+            ZStack {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundStyle(.green.opacity(0.2))
+                Text("\(number)")
+                    .font(.caption.bold())
+                    .foregroundStyle(.green)
+            }
+            .frame(width: 40)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.body)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func hizbSubtitle(_ hizb: Int) -> String {
+        // Each hizb = half a juz. Juz = (hizb + 1) / 2 rounded up
+        let juz = Int(ceil(Double(hizb) / 2.0))
+        let half = hizb.isMultiple(of: 2) ? "2nd half" : "1st half"
+        return "Juz \(juz), \(half)"
+    }
 }
 
-// MARK: - Surah Row
+// MARK: - SurahRowView (unchanged)
 
 struct SurahRowView: View {
     let surah: Surah
-    
+
     var body: some View {
         HStack(spacing: 16) {
-            // Surah number in a diamond/circle
             ZStack {
                 Image(systemName: "diamond.fill")
                     .font(.title)
@@ -111,8 +171,7 @@ struct SurahRowView: View {
                     .foregroundStyle(.green)
             }
             .frame(width: 40)
-            
-            // Name and info
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(surah.nameTransliteration)
                     .font(.body.weight(.medium))
@@ -120,10 +179,9 @@ struct SurahRowView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            
+
             Spacer()
-            
-            // Arabic name and verse count
+
             VStack(alignment: .trailing, spacing: 2) {
                 Text(surah.nameArabic)
                     .font(.title3)
@@ -137,13 +195,12 @@ struct SurahRowView: View {
     }
 }
 
-// MARK: - Juz Reader (placeholder, loads verses by juz)
+// MARK: - Juz Reader
 
 struct JuzReaderView: View {
     let juzNumber: Int
-    @EnvironmentObject var quranVM: QuranViewModel
     @State private var verses: [Verse] = []
-    
+
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
@@ -161,10 +218,48 @@ struct JuzReaderView: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        SurahListView()
+// MARK: - Page Reader (PRD QR-03)
+
+struct PageReaderView: View {
+    let pageNumber: Int
+    @State private var verses: [Verse] = []
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(verses) { verse in
+                    VerseRow(verse: verse)
+                }
+            }
+            .padding(.horizontal)
+        }
+        .navigationTitle("Page \(pageNumber)")
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            verses = QuranDatabase.shared.fetchVerses(pageNumber: pageNumber)
+        }
     }
-    .environmentObject(QuranViewModel())
-    .environmentObject(SettingsViewModel())
+}
+
+// MARK: - Hizb Reader (PRD QR-03)
+
+struct HizbReaderView: View {
+    let hizbNumber: Int
+    @State private var verses: [Verse] = []
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(verses) { verse in
+                    VerseRow(verse: verse)
+                }
+            }
+            .padding(.horizontal)
+        }
+        .navigationTitle("Hizb \(hizbNumber)")
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            verses = QuranDatabase.shared.fetchVerses(hizbNumber: hizbNumber)
+        }
+    }
 }

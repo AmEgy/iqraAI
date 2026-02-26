@@ -20,6 +20,10 @@ class SettingsViewModel: ObservableObject {
         didSet { saveSetting("tajweed_colors", value: showTajweedColors ? "true" : "false") }
     }
     
+    @Published var showTransliteration: Bool {
+        didSet { saveSetting("transliteration", value: showTransliteration ? "true" : "false") }
+    }
+    
     private let db = QuranDatabase.shared
     
     init() {
@@ -34,6 +38,9 @@ class SettingsViewModel: ObservableObject {
         
         let storedTajweed = db.getSetting("tajweed_colors") ?? "true"
         self.showTajweedColors = storedTajweed == "true"
+        
+        let storedTranslit = db.getSetting("transliteration") ?? "false"
+        self.showTransliteration = storedTranslit == "true"
     }
     
     private func saveSetting(_ key: String, value: String) {
