@@ -15,18 +15,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Select Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
-
-      - name: Install xcpretty
-        run: gem install xcpretty --no-document
-
       - name: Show build environment
         run: |
           xcodebuild -version
           swift --version
           xcodebuild -showsdks
           xcodebuild -list -project iqraAI.xcodeproj
+
+      - name: Install xcpretty
+        run: gem install xcpretty --no-document
 
       - name: Build (no signing)
         run: |
@@ -35,6 +32,9 @@ jobs:
             -project iqraAI.xcodeproj \
             -scheme iqraAI \
             -sdk iphonesimulator \
+            -configuration Debug \
+            ONLY_ACTIVE_ARCH=NO \
+            IPHONEOS_DEPLOYMENT_TARGET=17.0 \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
