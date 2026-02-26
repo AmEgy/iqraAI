@@ -31,11 +31,10 @@ jobs:
       - name: Build (no signing)
         run: |
           set -o pipefail
-          xcodebuild build \
+          xcodebuild build-for-testing \
             -project iqraAI.xcodeproj \
             -scheme iqraAI \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            -allowProvisioningUpdates \
+            -destination 'generic/platform=iOS Simulator' \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
