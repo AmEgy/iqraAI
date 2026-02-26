@@ -28,6 +28,8 @@
 		04CE0D372F4C63B1004350E8 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CE0D362F4C63B1004350E8 /* HomeView.swift */; };
 		04F54F2C2F4DE79300EAE77D /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F54F2B2F4DE79300EAE77D /* Constants.swift */; };
 		04F54F2E2F4DE79B00EAE77D /* TajweedParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F54F2D2F4DE79A00EAE77D /* TajweedParser.swift */; };
+		AA100001000000000000F001 /* AudioDownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100001000000000000F000 /* AudioDownloadManager.swift */; };
+		AA100002000000000000F001 /* TranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100002000000000000F000 /* TranslationService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +58,8 @@
 		04F41AE82F4A28C200D206B2 /* iqraAI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iqraAI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		04F54F2B2F4DE79300EAE77D /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		04F54F2D2F4DE79A00EAE77D /* TajweedParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TajweedParser.swift; sourceTree = "<group>"; };
+		AA100001000000000000F000 /* AudioDownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDownloadManager.swift; sourceTree = "<group>"; };
+		AA100002000000000000F000 /* TranslationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -134,6 +138,8 @@
 				04CE0D272F4C6288004350E8 /* AudioPlayerService.swift */,
 				04CE0D282F4C6288004350E8 /* MiniPlayerBar.swift */,
 				04BBB0A62F4C667C0012BA3E /* QuranDatabase.swift */,
+				AA100001000000000000F000 /* AudioDownloadManager.swift */,
+				AA100002000000000000F000 /* TranslationService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -269,6 +275,8 @@
 				0402FE432F4A336000C13DA2 /* BookmarksView.swift in Sources */,
 				04F54F2C2F4DE79300EAE77D /* Constants.swift in Sources */,
 				04F54F2E2F4DE79B00EAE77D /* TajweedParser.swift in Sources */,
+				AA100001000000000000F001 /* AudioDownloadManager.swift in Sources */,
+				AA100002000000000000F001 /* TranslationService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
