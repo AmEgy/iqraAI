@@ -53,20 +53,29 @@ final class AudioDownloadManager: ObservableObject {
 
         surahProgress[surahNumber] = 0
 
+        // Pre-compute all URLs and paths (non-isolated values) before entering the task
+        let items: [(verse: Int, remote: URL, local: URL)] = (1...verseCount).map { verse in
+            let globalAyah = globalAyahNumber(surah: surahNumber, verse: verse)
+            let remote = URL(string: "\(baseURL)\(globalAyah).mp3")!
+            let local  = cachePath(reciterId: reciterId, surah: surahNumber, verse: verse)
+            return (verse, remote, local)
+        }
+
         activeTasks[surahNumber] = Task {
             var completed = 0
             await withTaskGroup(of: Void.self) { group in
-                for verse in 1...verseCount {
+                for item in items {
                     guard !Task.isCancelled else { break }
-                    let localPath = cachePath(reciterId: reciterId, surah: surahNumber, verse: verse)
-                    guard !FileManager.default.fileExists(atPath: localPath.path) else {
+                    // Already cached — count immediately
+                    if FileManager.default.fileExists(atPath: item.local.path) {
                         completed += 1
-                        surahProgress[surahNumber] = Double(completed) / Double(verseCount)
+                        self.surahProgress[surahNumber] = Double(completed) / Double(verseCount)
                         continue
                     }
+                    // Capture only plain values into the nonisolated task
+                    let remoteURL = item.remote
+                    let localPath = item.local
                     group.addTask {
-                        let globalAyah = self.globalAyahNumber(surah: surahNumber, verse: verse)
-                        let remoteURL = URL(string: "\(baseURL)\(globalAyah).mp3")!
                         if let data = try? await URLSession.shared.data(from: remoteURL).0 {
                             try? data.write(to: localPath, options: .atomic)
                         }
