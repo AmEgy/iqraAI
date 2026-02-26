@@ -31,7 +31,7 @@ jobs:
       - name: Build (no signing)
         run: |
           set -o pipefail
-          xcodebuild build-for-testing \
+          xcodebuild build \
             -project iqraAI.xcodeproj \
             -scheme iqraAI \
             -sdk iphonesimulator \
