@@ -34,7 +34,7 @@ jobs:
           xcodebuild build-for-testing \
             -project iqraAI.xcodeproj \
             -scheme iqraAI \
-            -destination 'generic/platform=iOS Simulator' \
+            -sdk iphonesimulator \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
