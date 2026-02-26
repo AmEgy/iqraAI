@@ -43,7 +43,11 @@
 ### Offline Downloads ⭐
 - [ ] Settings → Offline Downloads → shows all 114 surahs
 - [ ] Tap ⬇ on Al-Fatihah (7 verses, fast) → progress bar fills → icon becomes 🗑️
-- [ ] Turn on **Airplane Mode** → play Al-Fatihah → audio still plays from cache
+- [ ] **Airplane Mode test** ⭐ (most important):
+  1. Download Al-Fatihah
+  2. Enable Airplane Mode
+  3. Close and reopen the app
+  4. Play Al-Fatihah → audio must play from cache with no internet
 - [ ] Tap 🗑️ → download icon returns
 - [ ] "Clear All" removes all cached audio
 
@@ -70,6 +74,16 @@
 - [ ] Bookmarks tab shows all saved bookmarks with surah name + verse number
 - [ ] Swipe-to-delete removes bookmark
 - [ ] Tap bookmark → opens correct surah
+
+---
+
+## 🔄 Persistence (close & reopen the app)
+- [ ] Font size stays the same after restart
+- [ ] Theme (dark/light/sepia) stays the same
+- [ ] Transliteration toggle state is remembered
+- [ ] Selected translation language is remembered
+- [ ] Bookmarks are still there
+- [ ] Last read position remembered (app resumes where you left off)
 
 ---
 
