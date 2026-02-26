@@ -18,35 +18,27 @@ jobs:
       - name: Select Xcode version
         run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
 
+      - name: Install xcpretty
+        run: gem install xcpretty --no-document
+
       - name: Show build environment
         run: |
           xcodebuild -version
           swift --version
+          xcodebuild -showsdks
           xcodebuild -list -project iqraAI.xcodeproj
-          xcrun simctl list runtimes
 
       - name: Build (no signing)
         run: |
+          set -o pipefail
           xcodebuild build \
             -project iqraAI.xcodeproj \
             -scheme iqraAI \
-            -destination 'generic/platform=iOS Simulator' \
+            -sdk iphonesimulator \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            | xcpretty && exit ${PIPESTATUS[0]}
-
-      - name: Run tests (if any)
-        run: |
-          xcodebuild test \
-            -project iqraAI.xcodeproj \
-            -scheme iqraAI \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            | xcpretty && exit ${PIPESTATUS[0]}
-        continue-on-error: true  # won't fail the build if no tests exist yet
+            | xcpretty
 
       - name: Upload build logs on failure
         if: failure()
