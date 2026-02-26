@@ -6,7 +6,12 @@ enum AppConstants {
     // MARK: - Database
     static let quranDBFilename = "quran"
     static let quranDBExtension = "db"
-    static let quranDBChecksum = "b380bf3baad452db48aa77c13cdf7b89e60e3872d84e652e5834c6553983cc83"
+    
+    /// SHA-256 hash of the bundled quran.db file.
+    /// Computed on: 2026-02-26 from Tanzil.net Uthmani Hafs text.
+    /// HOW TO UPDATE: run `sha256sum iqraAI/quran.db` and paste the result here.
+    /// The app will refuse to display Quran text if this does not match at launch.
+    static let quranDBChecksum = "b3d405b20e72eef5c19098de4c10092c65b057b10b1ae149cd3e467fd08b81d1"
     
     // MARK: - Quran Structure
     static let totalSurahs = 114
