@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: Build iqraAI
-    runs-on: macos-15
+    runs-on: macos-latest
 
     steps:
       - name: Checkout code
@@ -34,7 +34,8 @@ jobs:
           xcodebuild build \
             -project iqraAI.xcodeproj \
             -scheme iqraAI \
-            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -allowProvisioningUpdates \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
