@@ -6,34 +6,162 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXFileReference section */
-		04F41AE82F4A28C200D206B2 /* iqraAI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iqraAI.app; sourceTree = BUILT_PRODUCTS_DIR; };
-/* End PBXFileReference section */
+/* Begin PBXBuildFile section */
+		0402FE302F4A331800C13DA2 /* TajweedRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0402FE2F2F4A331800C13DA2 /* TajweedRule.swift */; };
+		0402FE382F4A334800C13DA2 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0402FE372F4A334800C13DA2 /* SettingsViewModel.swift */; };
+		0402FE392F4A334800C13DA2 /* QuranViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0402FE362F4A334800C13DA2 /* QuranViewModel.swift */; };
+		0402FE3F2F4A335A00C13DA2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0402FE3B2F4A335A00C13DA2 /* SettingsView.swift */; };
+		0402FE412F4A335A00C13DA2 /* SurahListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0402FE3C2F4A335A00C13DA2 /* SurahListView.swift */; };
+		0402FE432F4A336000C13DA2 /* BookmarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0402FE422F4A336000C13DA2 /* BookmarksView.swift */; };
+		0402FE4F2F4A35D300C13DA2 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 0402FE4E2F4A35D300C13DA2 /* GRDB */; };
+		0425B0B02F4B3D740014C2EB /* QuranIntegrityChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0425B0AF2F4B3D740014C2EB /* QuranIntegrityChecker.swift */; };
+		04BBB0A32F4C66620012BA3E /* VerseRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04BBB0A22F4C66620012BA3E /* VerseRow.swift */; };
+		04BBB0A72F4C667C0012BA3E /* QuranDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04BBB0A62F4C667C0012BA3E /* QuranDatabase.swift */; };
+		04BBB0A92F4C67070012BA3E /* QuranModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04BBB0A82F4C67070012BA3E /* QuranModels.swift */; };
+		04BBB0AB2F4C6A610012BA3E /* quran.db in Resources */ = {isa = PBXBuildFile; fileRef = 04BBB0AA2F4C6A610012BA3E /* quran.db */; };
+		04CE0D292F4C6288004350E8 /* AudioControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CE0D262F4C6288004350E8 /* AudioControlsView.swift */; };
+		04CE0D2A2F4C6288004350E8 /* AudioPlayerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CE0D272F4C6288004350E8 /* AudioPlayerService.swift */; };
+		04CE0D2B2F4C6288004350E8 /* MiniPlayerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CE0D282F4C6288004350E8 /* MiniPlayerBar.swift */; };
+		04CE0D312F4C6388004350E8 /* VerseReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CE0D302F4C6388004350E8 /* VerseReaderView.swift */; };
+		04CE0D332F4C638E004350E8 /* SurahHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CE0D322F4C638E004350E8 /* SurahHeader.swift */; };
+		04CE0D352F4C63A1004350E8 /* iqraAIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CE0D342F4C63A1004350E8 /* iqraAIApp.swift */; };
+		04CE0D372F4C63B1004350E8 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CE0D362F4C63B1004350E8 /* HomeView.swift */; };
+		04F54F2C2F4DE79300EAE77D /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F54F2B2F4DE79300EAE77D /* Constants.swift */; };
+		04F54F2E2F4DE79B00EAE77D /* TajweedParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F54F2D2F4DE79A00EAE77D /* TajweedParser.swift */; };
+/* End PBXBuildFile section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		04F41AEA2F4A28C200D206B2 /* iqraAI */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = iqraAI;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
+/* Begin PBXFileReference section */
+		0402FE1B2F4A30F800C13DA2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		0402FE1D2F4A30F800C13DA2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0402FE1F2F4A30F800C13DA2 /* ScheherazadeNew-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ScheherazadeNew-Bold.ttf"; sourceTree = "<group>"; };
+		0402FE202F4A30F800C13DA2 /* ScheherazadeNew-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ScheherazadeNew-Regular.ttf"; sourceTree = "<group>"; };
+		0402FE2F2F4A331800C13DA2 /* TajweedRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TajweedRule.swift; sourceTree = "<group>"; };
+		0402FE362F4A334800C13DA2 /* QuranViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuranViewModel.swift; sourceTree = "<group>"; };
+		0402FE372F4A334800C13DA2 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
+		0402FE3B2F4A335A00C13DA2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		0402FE3C2F4A335A00C13DA2 /* SurahListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurahListView.swift; sourceTree = "<group>"; };
+		0402FE422F4A336000C13DA2 /* BookmarksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksView.swift; sourceTree = "<group>"; };
+		0425B0AF2F4B3D740014C2EB /* QuranIntegrityChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuranIntegrityChecker.swift; sourceTree = "<group>"; };
+		04BBB0A22F4C66620012BA3E /* VerseRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerseRow.swift; sourceTree = "<group>"; };
+		04BBB0A62F4C667C0012BA3E /* QuranDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuranDatabase.swift; sourceTree = "<group>"; };
+		04BBB0A82F4C67070012BA3E /* QuranModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuranModels.swift; sourceTree = "<group>"; };
+		04BBB0AA2F4C6A610012BA3E /* quran.db */ = {isa = PBXFileReference; lastKnownFileType = file; path = quran.db; sourceTree = "<group>"; };
+		04CE0D262F4C6288004350E8 /* AudioControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioControlsView.swift; sourceTree = "<group>"; };
+		04CE0D272F4C6288004350E8 /* AudioPlayerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerService.swift; sourceTree = "<group>"; };
+		04CE0D282F4C6288004350E8 /* MiniPlayerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerBar.swift; sourceTree = "<group>"; };
+		04CE0D302F4C6388004350E8 /* VerseReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerseReaderView.swift; sourceTree = "<group>"; };
+		04CE0D322F4C638E004350E8 /* SurahHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurahHeader.swift; sourceTree = "<group>"; };
+		04CE0D342F4C63A1004350E8 /* iqraAIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iqraAIApp.swift; sourceTree = "<group>"; };
+		04CE0D362F4C63B1004350E8 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		04F41AE82F4A28C200D206B2 /* iqraAI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iqraAI.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		04F54F2B2F4DE79300EAE77D /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		04F54F2D2F4DE79A00EAE77D /* TajweedParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TajweedParser.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		04F41AE52F4A28C200D206B2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0402FE4F2F4A35D300C13DA2 /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0402FE212F4A30F800C13DA2 /* iqraAI */ = {
+			isa = PBXGroup;
+			children = (
+				0402FE2A2F4A321C00C13DA2 /* Utils */,
+				0402FE292F4A321200C13DA2 /* Services */,
+				0402FE282F4A320600C13DA2 /* ViewModels */,
+				0402FE272F4A320200C13DA2 /* Views */,
+				0402FE262F4A31F800C13DA2 /* Models */,
+				0402FE252F4A31E500C13DA2 /* App */,
+				0402FE1B2F4A30F800C13DA2 /* Assets.xcassets */,
+				0402FE1D2F4A30F800C13DA2 /* Info.plist */,
+				0402FE1F2F4A30F800C13DA2 /* ScheherazadeNew-Bold.ttf */,
+				0402FE202F4A30F800C13DA2 /* ScheherazadeNew-Regular.ttf */,
+				04BBB0AA2F4C6A610012BA3E /* quran.db */,
+			);
+			path = iqraAI;
+			sourceTree = "<group>";
+		};
+		0402FE252F4A31E500C13DA2 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				04CE0D342F4C63A1004350E8 /* iqraAIApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		0402FE262F4A31F800C13DA2 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				0402FE2F2F4A331800C13DA2 /* TajweedRule.swift */,
+				04BBB0A82F4C67070012BA3E /* QuranModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		0402FE272F4A320200C13DA2 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				0402FE2B2F4A322700C13DA2 /* Components */,
+				0402FE3B2F4A335A00C13DA2 /* SettingsView.swift */,
+				0402FE3C2F4A335A00C13DA2 /* SurahListView.swift */,
+				0402FE422F4A336000C13DA2 /* BookmarksView.swift */,
+				04CE0D362F4C63B1004350E8 /* HomeView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		0402FE282F4A320600C13DA2 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				0402FE362F4A334800C13DA2 /* QuranViewModel.swift */,
+				0402FE372F4A334800C13DA2 /* SettingsViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		0402FE292F4A321200C13DA2 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				0425B0AF2F4B3D740014C2EB /* QuranIntegrityChecker.swift */,
+				04CE0D262F4C6288004350E8 /* AudioControlsView.swift */,
+				04CE0D272F4C6288004350E8 /* AudioPlayerService.swift */,
+				04CE0D282F4C6288004350E8 /* MiniPlayerBar.swift */,
+				04BBB0A62F4C667C0012BA3E /* QuranDatabase.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		0402FE2A2F4A321C00C13DA2 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				04F54F2B2F4DE79300EAE77D /* Constants.swift */,
+				04F54F2D2F4DE79A00EAE77D /* TajweedParser.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		0402FE2B2F4A322700C13DA2 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				04CE0D302F4C6388004350E8 /* VerseReaderView.swift */,
+				04CE0D322F4C638E004350E8 /* SurahHeader.swift */,
+				04BBB0A22F4C66620012BA3E /* VerseRow.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
 		04F41ADF2F4A28C200D206B2 = {
 			isa = PBXGroup;
 			children = (
-				04F41AEA2F4A28C200D206B2 /* iqraAI */,
 				04F41AE92F4A28C200D206B2 /* Products */,
+				0402FE212F4A30F800C13DA2 /* iqraAI */,
 			);
 			sourceTree = "<group>";
 		};
@@ -60,11 +188,9 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				04F41AEA2F4A28C200D206B2 /* iqraAI */,
-			);
 			name = iqraAI;
 			packageProductDependencies = (
+				0402FE4E2F4A35D300C13DA2 /* GRDB */,
 			);
 			productName = iqraAI;
 			productReference = 04F41AE82F4A28C200D206B2 /* iqraAI.app */;
@@ -82,6 +208,7 @@
 				TargetAttributes = {
 					04F41AE72F4A28C200D206B2 = {
 						CreatedOnToolsVersion = 26.2;
+						LastSwiftMigration = 2620;
 					};
 				};
 			};
@@ -94,6 +221,9 @@
 			);
 			mainGroup = 04F41ADF2F4A28C200D206B2;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				0402FE4D2F4A35D300C13DA2 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 04F41AE92F4A28C200D206B2 /* Products */;
 			projectDirPath = "";
@@ -109,6 +239,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				04BBB0AB2F4C6A610012BA3E /* quran.db in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,6 +250,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				04BBB0A72F4C667C0012BA3E /* QuranDatabase.swift in Sources */,
+				04CE0D312F4C6388004350E8 /* VerseReaderView.swift in Sources */,
+				0402FE3F2F4A335A00C13DA2 /* SettingsView.swift in Sources */,
+				04CE0D352F4C63A1004350E8 /* iqraAIApp.swift in Sources */,
+				04CE0D292F4C6288004350E8 /* AudioControlsView.swift in Sources */,
+				04CE0D2A2F4C6288004350E8 /* AudioPlayerService.swift in Sources */,
+				04CE0D2B2F4C6288004350E8 /* MiniPlayerBar.swift in Sources */,
+				0425B0B02F4B3D740014C2EB /* QuranIntegrityChecker.swift in Sources */,
+				04CE0D332F4C638E004350E8 /* SurahHeader.swift in Sources */,
+				04CE0D372F4C63B1004350E8 /* HomeView.swift in Sources */,
+				04BBB0A92F4C67070012BA3E /* QuranModels.swift in Sources */,
+				0402FE412F4A335A00C13DA2 /* SurahListView.swift in Sources */,
+				0402FE302F4A331800C13DA2 /* TajweedRule.swift in Sources */,
+				0402FE382F4A334800C13DA2 /* SettingsViewModel.swift in Sources */,
+				0402FE392F4A334800C13DA2 /* QuranViewModel.swift in Sources */,
+				04BBB0A32F4C66620012BA3E /* VerseRow.swift in Sources */,
+				0402FE432F4A336000C13DA2 /* BookmarksView.swift in Sources */,
+				04F54F2C2F4DE79300EAE77D /* Constants.swift in Sources */,
+				04F54F2E2F4DE79B00EAE77D /* TajweedParser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,16 +401,19 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = GSUSSKHS9Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = iqraAI/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -272,6 +425,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -283,16 +437,19 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = GSUSSKHS9Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = iqraAI/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -332,6 +489,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		0402FE4D2F4A35D300C13DA2 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift.git";
+			requirement = {
+				kind = exactVersion;
+				version = 7.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0402FE4E2F4A35D300C13DA2 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0402FE4D2F4A35D300C13DA2 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 04F41AE02F4A28C200D206B2 /* Project object */;
 }
