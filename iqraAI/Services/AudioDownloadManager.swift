@@ -46,7 +46,8 @@ final class AudioDownloadManager: ObservableObject {
         activeTasks[surahNumber] != nil
     }
 
-    func downloadSurah(_ surahNumber: Int, reciterId: Int, baseURL: String) {
+    func downloadSurah(_ surahNumber: Int, reciterId: Int, baseURL: String,
+                       urlFormat: ReciterURLFormat = .globalAyah) {
         guard !isSurahDownloaded(surahNumber), activeTasks[surahNumber] == nil else { return }
         let verseCount = verseCounts[safe: surahNumber - 1] ?? 0
         guard verseCount > 0 else { return }
@@ -55,8 +56,16 @@ final class AudioDownloadManager: ObservableObject {
 
         // Pre-compute all URLs and paths (non-isolated values) before entering the task
         let items: [(verse: Int, remote: URL, local: URL)] = (1...verseCount).map { verse in
-            let globalAyah = globalAyahNumber(surah: surahNumber, verse: verse)
-            let remote = URL(string: "\(baseURL)\(globalAyah).mp3")!
+            let remote: URL
+            switch urlFormat {
+            case .globalAyah:
+                let globalAyah = globalAyahNumber(surah: surahNumber, verse: verse)
+                remote = URL(string: "\(baseURL)\(globalAyah).mp3")!
+            case .surahVerse:
+                let s = String(format: "%03d", surahNumber)
+                let v = String(format: "%03d", verse)
+                remote = URL(string: "\(baseURL)\(s)\(v).mp3")!
+            }
             let local  = cachePath(reciterId: reciterId, surah: surahNumber, verse: verse)
             return (verse, remote, local)
         }

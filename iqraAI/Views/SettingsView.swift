@@ -5,6 +5,7 @@ struct SettingsView: View {
     @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var audioPlayer: AudioPlayerService
     @StateObject private var downloader = AudioDownloadManager.shared
+    @ObservedObject private var translationService = TranslationService.shared
     @State private var showDownloadManager = false
 
     var body: some View {
@@ -48,8 +49,8 @@ struct SettingsView: View {
             // MARK: - Translation Language (PRD QR-05)
             Section("Translation Language") {
                 Picker("Language", selection: Binding(
-                    get: { TranslationService.shared.selectedLanguage },
-                    set: { TranslationService.shared.setLanguage($0) }
+                    get: { translationService.selectedLanguage },
+                    set: { translationService.setLanguage($0) }
                 )) {
                     ForEach(TranslationService.supportedLanguages) { lang in
                         Text("\(lang.displayName) — \(lang.nativeName)").tag(lang)
@@ -65,12 +66,13 @@ struct SettingsView: View {
 
             // MARK: - Audio
             Section("Audio") {
-                HStack {
-                    Label("Reciter", systemImage: "waveform")
-                    Spacer()
-                    Text(audioPlayer.currentReciter.name)
-                        .foregroundStyle(.secondary)
-                        .font(.caption)
+                Picker("Reciter", selection: $audioPlayer.currentReciter) {
+                    ForEach(AudioPlayerService.defaultReciters) { reciter in
+                        Text(reciter.name).tag(reciter)
+                    }
+                }
+                .onChange(of: audioPlayer.currentReciter) { _, _ in
+                    if audioPlayer.isActive { audioPlayer.stop() }
                 }
 
                 // Download Manager entry (PRD AP-09)
@@ -245,7 +247,8 @@ private struct SurahDownloadRow: View {
                         downloader.downloadSurah(
                             surah.number,
                             reciterId: audioPlayer.currentReciter.id,
-                            baseURL: audioPlayer.currentReciter.audioBaseURL
+                            baseURL: audioPlayer.currentReciter.audioBaseURL,
+                            urlFormat: audioPlayer.currentReciter.urlFormat
                         )
                     } label: {
                         Image(systemName: "arrow.down.circle")

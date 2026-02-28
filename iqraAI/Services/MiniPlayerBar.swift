@@ -34,6 +34,10 @@ struct MiniPlayerBar: View {
                     
                     if audioPlayer.playbackState == .loading {
                         ProgressView().scaleEffect(0.8)
+                    } else if case .error = audioPlayer.playbackState {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundStyle(.red)
+                            .font(.body)
                     }
                     
                     Button { audioPlayer.playPrevious() } label: {

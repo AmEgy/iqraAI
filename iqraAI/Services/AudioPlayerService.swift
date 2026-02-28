@@ -5,13 +5,24 @@ import Combine
 
 // MARK: - Reciter Model
 
+enum ReciterURLFormat {
+    /// URL = baseURL + globalAyahNumber + ".mp3"  (e.g. cdn.islamic.network)
+    case globalAyah
+    /// URL = baseURL + zeroPadded(surah, 3) + zeroPadded(verse, 3) + ".mp3"  (e.g. everyayah.com)
+    case surahVerse
+}
+
 struct Reciter: Identifiable, Hashable {
     let id: Int
     let name: String
     let arabicName: String
     let style: String
     let audioBaseURL: String
+    let urlFormat: ReciterURLFormat
     let quranComRecitationId: Int?
+
+    static func == (lhs: Reciter, rhs: Reciter) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
 
 // MARK: - Word Timestamp
@@ -62,12 +73,14 @@ class AudioPlayerService: NSObject, ObservableObject {
             id: 7, name: "Mishary Al-Afasy", arabicName: "مشاري العفاسي",
             style: "Murattal",
             audioBaseURL: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/",
+            urlFormat: .globalAyah,
             quranComRecitationId: 7
         ),
         Reciter(
             id: 1, name: "Abdul-Basit (Murattal)", arabicName: "عبد الباسط عبد الصمد",
             style: "Murattal",
-            audioBaseURL: "https://cdn.islamic.network/quran/audio/128/ar.abdulbasitmurattal/",
+            audioBaseURL: "https://everyayah.com/data/Abdul_Basit_Murattal_192kbps/",
+            urlFormat: .surahVerse,
             quranComRecitationId: 1
         )
     ]
@@ -143,8 +156,16 @@ class AudioPlayerService: NSObject, ObservableObject {
     }
     
     private func audioURL(surah: Int, verse: Int) -> URL {
-        let num = globalAyahNumber(surah: surah, verse: verse)
-        return URL(string: "\(currentReciter.audioBaseURL)\(num).mp3")!
+        let base = currentReciter.audioBaseURL
+        switch currentReciter.urlFormat {
+        case .globalAyah:
+            let num = globalAyahNumber(surah: surah, verse: verse)
+            return URL(string: "\(base)\(num).mp3")!
+        case .surahVerse:
+            let s = String(format: "%03d", surah)
+            let v = String(format: "%03d", verse)
+            return URL(string: "\(base)\(s)\(v).mp3")!
+        }
     }
     
     private func cachePath(surah: Int, verse: Int) -> URL {
@@ -258,6 +279,8 @@ class AudioPlayerService: NSObject, ObservableObject {
     }
     
     func resume() {
+        // Re-activate audio session in case it was interrupted (e.g. lock screen tap)
+        try? AVAudioSession.sharedInstance().setActive(true)
         player?.play()
         player?.rate = playbackSpeed
         playbackState = .playing
@@ -331,9 +354,9 @@ class AudioPlayerService: NSObject, ObservableObject {
     
     private func updateWordHighlight(at time: TimeInterval) {
         guard !wordTimestamps.isEmpty else { return }
-        for (i, ts) in wordTimestamps.enumerated() {
+        for ts in wordTimestamps {
             if time >= ts.startTime && time < ts.endTime {
-                if highlightedWordIndex != i { highlightedWordIndex = i }
+                if highlightedWordIndex != ts.wordIndex { highlightedWordIndex = ts.wordIndex }
                 return
             }
         }

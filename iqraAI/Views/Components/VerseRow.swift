@@ -3,14 +3,25 @@ import SwiftUI
 struct VerseRow: View {
 
     let verse: Verse
+    /// Total verses in this surah — needed for "play from here" continuous playback.
+    /// When 0 (default, e.g. Juz/Page/Hizb views), auto-looked up from DB.
+    var surahTotalVerses: Int = 0
+
+    private var resolvedTotalVerses: Int {
+        if surahTotalVerses > 0 { return surahTotalVerses }
+        return QuranDatabase.shared.fetchSurah(number: verse.surahNumber)?.verseCount ?? verse.verseNumber
+    }
 
     @EnvironmentObject var quranVM: QuranViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var audioPlayer: AudioPlayerService
+    @ObservedObject private var translationService = TranslationService.shared
+
     @State private var showActions: Bool = false
     @State private var tappedWordIndex: Int? = nil
     @State private var wordTranslations: [Int: String] = [:]
     @State private var transliterationText: String? = nil
+    @State private var fetchedTranslation: String? = nil
 
     private var isBookmarked: Bool {
         quranVM.isBookmarked(surah: verse.surahNumber, verse: verse.verseNumber)
@@ -26,7 +37,7 @@ struct VerseRow: View {
         VStack(alignment: .trailing, spacing: 8) {
             verseNumberBar
             arabicText
-            
+
             // Transliteration (PRD QR-06)
             if settingsVM.showTransliteration, let translit = transliterationText, !translit.isEmpty {
                 Text(translit)
@@ -36,8 +47,11 @@ struct VerseRow: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            if settingsVM.showTranslation, let english = verse.textEnglish, !english.isEmpty {
-                translationText(english)
+            if settingsVM.showTranslation {
+                let displayText = fetchedTranslation ?? verse.textEnglish ?? ""
+                if !displayText.isEmpty {
+                    translationText(displayText)
+                }
             }
 
             Divider().padding(.top, 8)
@@ -47,21 +61,29 @@ struct VerseRow: View {
         .cornerRadius(8)
         .contentShape(Rectangle())
         .onTapGesture {
-            quranVM.updateReadingPosition(surah: verse.surahNumber, verse: verse.verseNumber)
-        }
-        .onLongPressGesture {
             showActions = true
         }
         .confirmationDialog("Verse \(verse.verseKey)", isPresented: $showActions) {
             Button(isBookmarked ? "Remove Bookmark" : "Add Bookmark") {
                 quranVM.toggleBookmark(surah: verse.surahNumber, verse: verse.verseNumber)
             }
+            Button("Play from Here") {
+                let total = resolvedTotalVerses
+                audioPlayer.playSurah(
+                    surah: verse.surahNumber,
+                    fromVerse: verse.verseNumber,
+                    totalVerses: total
+                )
+            }
+            Button("Play This Verse Only") {
+                audioPlayer.playVerse(surah: verse.surahNumber, verse: verse.verseNumber)
+            }
             Button("Copy Arabic Text") {
                 UIPasteboard.general.string = verse.textArabic
             }
             if let english = verse.textEnglish, !english.isEmpty {
                 Button("Copy Translation") {
-                    UIPasteboard.general.string = english
+                    UIPasteboard.general.string = fetchedTranslation ?? english
                 }
             }
             Button("Cancel", role: .cancel) {}
@@ -84,6 +106,13 @@ struct VerseRow: View {
             if settingsVM.showTransliteration && transliterationText == nil {
                 await loadTransliteration()
             }
+        }
+        // Reload translation whenever the selected language changes
+        .task(id: translationService.selectedLanguage.id) {
+            fetchedTranslation = await translationService.fetchVerseTranslation(
+                surah: verse.surahNumber,
+                verse: verse.verseNumber
+            )
         }
     }
 
@@ -120,12 +149,17 @@ struct VerseRow: View {
             }
             .buttonStyle(.plain)
 
-            // Play this verse
+            // Play button — plays from this verse to end of surah
             Button {
                 if isCurrentlyPlaying {
                     audioPlayer.togglePlayPause()
                 } else {
-                    audioPlayer.playVerse(surah: verse.surahNumber, verse: verse.verseNumber)
+                    let total = resolvedTotalVerses
+                    audioPlayer.playSurah(
+                        surah: verse.surahNumber,
+                        fromVerse: verse.verseNumber,
+                        totalVerses: total
+                    )
                 }
             } label: {
                 Image(systemName: isCurrentlyPlaying && audioPlayer.isPlaying
@@ -137,38 +171,22 @@ struct VerseRow: View {
         }
     }
 
+    // MARK: - Arabic Text
+    // Always renders tappable words so the word-meaning popover always works.
+    // Word-level highlighting takes priority when audio is playing with timestamps.
+
     private var arabicText: some View {
         let verseEndMarker = " \u{06DD}\(verse.arabicVerseNumber)"
 
-        // If playing with word timestamps, show word highlighting
         if isCurrentlyPlaying && !audioPlayer.wordTimestamps.isEmpty {
             return AnyView(highlightedArabicText(verseEndMarker: verseEndMarker))
         }
 
-        // Tajweed colored text
-        if settingsVM.showTajweedColors, let tajweedText = verse.textTajweed, !tajweedText.isEmpty {
-            return AnyView(
-                TajweedParser.coloredText(
-                    from: tajweedText,
-                    fontSize: settingsVM.fontSize,
-                    theme: settingsVM.theme,
-                    showTajweed: true
-                )
-                .multilineTextAlignment(.trailing)
-                .lineSpacing(settingsVM.fontSize * 0.5)
-                .frame(maxWidth: .infinity, alignment: .trailing)
-                .environment(\.layoutDirection, .rightToLeft)
-            )
-        }
-
-        // Plain Arabic — tappable words for word popover (PRD QR-04)
-        return AnyView(
-            tappableArabicText(verseEndMarker: verseEndMarker)
-        )
+        return AnyView(tappableArabicText(verseEndMarker: verseEndMarker))
     }
 
-    /// Renders the plain Arabic text as tappable words.
-    /// Each word tap opens the word translation popover.
+    /// Tappable word-by-word Arabic text.
+    /// Each word tap opens the translation popover (PRD QR-04).
     private func tappableArabicText(verseEndMarker: String) -> some View {
         let words = arabicWords
         return HStack(spacing: 4) {

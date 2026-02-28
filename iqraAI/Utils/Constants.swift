@@ -11,7 +11,7 @@ enum AppConstants {
     /// Computed on: 2026-02-26 from Tanzil.net Uthmani Hafs text.
     /// HOW TO UPDATE: run `sha256sum iqraAI/quran.db` and paste the result here.
     /// The app will refuse to display Quran text if this does not match at launch.
-    static let quranDBChecksum = "b3d405b20e72eef5c19098de4c10092c65b057b10b1ae149cd3e467fd08b81d1"
+    static let quranDBChecksum = "2992a13e0c4e49412583565f3ac584b443076a4e2f15fc7c92705d22efe892b6"
     
     // MARK: - Quran Structure
     static let totalSurahs = 114

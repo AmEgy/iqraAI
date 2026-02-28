@@ -1,16 +1,19 @@
 import SwiftUI
 
 struct VerseReaderView: View {
-    
+
     let surahNumber: Int
-    
+    /// When coming from Bookmarks, scroll to and briefly highlight this verse.
+    var initialVerse: Int? = nil
+
     @EnvironmentObject var quranVM: QuranViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var audioPlayer: AudioPlayerService
-    
+
     @State private var surah: Surah?
     @State private var verses: [Verse] = []
-    
+    @State private var highlightedVerse: Int? = nil
+
     var body: some View {
         VStack(spacing: 0) {
             // Audio controls bar
@@ -18,7 +21,7 @@ struct VerseReaderView: View {
                 AudioControlsView(surahNumber: surahNumber, totalVerses: surah.verseCount)
                     .environmentObject(audioPlayer)
             }
-            
+
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 0) {
@@ -27,10 +30,16 @@ struct VerseReaderView: View {
                                 .padding(.bottom, 12)
                                 .id("top")
                         }
-                        
+
                         ForEach(verses) { verse in
-                            VerseRow(verse: verse)
+                            VerseRow(verse: verse, surahTotalVerses: surah?.verseCount ?? 0)
                                 .id(verse.verseNumber)
+                                .background(
+                                    highlightedVerse == verse.verseNumber
+                                        ? Color.green.opacity(0.15)
+                                        : Color.clear
+                                )
+                                .animation(.easeOut(duration: 0.3), value: highlightedVerse)
                         }
                     }
                     .padding(.horizontal)
@@ -39,8 +48,17 @@ struct VerseReaderView: View {
                 .background(settingsVM.theme.backgroundColor)
                 .onAppear {
                     loadData()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        proxy.scrollTo("top", anchor: .top)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        if let target = initialVerse {
+                            proxy.scrollTo(target, anchor: .center)
+                            highlightedVerse = target
+                            // Remove highlight after 1.5s
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                highlightedVerse = nil
+                            }
+                        } else {
+                            proxy.scrollTo("top", anchor: .top)
+                        }
                     }
                 }
                 // Auto-scroll to current playing verse
@@ -67,7 +85,7 @@ struct VerseReaderView: View {
                             Label("Show Translation", systemImage: "text.badge.plus")
                         }
                     }
-                    
+
                     Button {
                         settingsVM.showTajweedColors.toggle()
                     } label: {
@@ -86,7 +104,7 @@ struct VerseReaderView: View {
             quranVM.updateReadingPosition(surah: surahNumber, verse: 1)
         }
     }
-    
+
     private func loadData() {
         let db = QuranDatabase.shared
         surah = db.fetchSurah(number: surahNumber)

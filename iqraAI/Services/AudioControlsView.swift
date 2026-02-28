@@ -27,6 +27,7 @@ struct AudioControlsView: View {
     }
 
     var body: some View {
+        VStack(spacing: 0) {
         HStack(spacing: 12) {
             // Play / Pause entire surah
             Button {
@@ -136,5 +137,18 @@ struct AudioControlsView: View {
         .padding(.horizontal)
         .padding(.vertical, 8)
         .background(.ultraThinMaterial)
+
+        // Show error banner when audio fails (e.g. reciter unavailable / no internet)
+        if case .error(let msg) = audioPlayer.playbackState {
+            Text(msg)
+                .font(.caption2)
+                .foregroundStyle(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
+                .background(Color.red.opacity(0.85))
+                .clipShape(Capsule())
+                .padding(.bottom, 4)
+        }
+        } // end VStack
     }
 }

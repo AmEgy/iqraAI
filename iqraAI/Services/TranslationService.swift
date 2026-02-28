@@ -7,6 +7,8 @@ struct TranslationLanguage: Identifiable, Hashable {
     let id: String          // Quran Foundation identifier, e.g. "en.sahih"
     let displayName: String
     let nativeName: String
+    /// Numeric translation resource ID for Quran Foundation v4 API
+    let quranComTranslationId: Int
 }
 
 // MARK: - On-demand Translation Service
@@ -19,13 +21,12 @@ final class TranslationService: ObservableObject {
 
     static let shared = TranslationService()
 
-    // Quran Foundation translation identifiers
     static let supportedLanguages: [TranslationLanguage] = [
-        TranslationLanguage(id: "en.sahih",  displayName: "English",    nativeName: "English"),
-        TranslationLanguage(id: "ur.jalandhry", displayName: "Urdu",    nativeName: "اردو"),
-        TranslationLanguage(id: "fr.hamidullah", displayName: "French", nativeName: "Français"),
-        TranslationLanguage(id: "tr.diyanet",    displayName: "Turkish", nativeName: "Türkçe"),
-        TranslationLanguage(id: "id.indonesian", displayName: "Indonesian", nativeName: "Bahasa"),
+        TranslationLanguage(id: "en.sahih",      displayName: "English",    nativeName: "English",    quranComTranslationId: 131),
+        TranslationLanguage(id: "ur.jalandhry",  displayName: "Urdu",       nativeName: "اردو",        quranComTranslationId: 97),
+        TranslationLanguage(id: "fr.hamidullah", displayName: "French",     nativeName: "Français",   quranComTranslationId: 31),
+        TranslationLanguage(id: "tr.diyanet",    displayName: "Turkish",    nativeName: "Türkçe",     quranComTranslationId: 77),
+        TranslationLanguage(id: "id.indonesian", displayName: "Indonesian", nativeName: "Bahasa",     quranComTranslationId: 33),
     ]
 
     @Published var selectedLanguage: TranslationLanguage = supportedLanguages[0]
@@ -36,7 +37,6 @@ final class TranslationService: ObservableObject {
     private let db = QuranDatabase.shared
 
     private init() {
-        // Restore persisted language
         if let savedId = db.getSetting("translation_language"),
            let lang = Self.supportedLanguages.first(where: { $0.id == savedId }) {
             selectedLanguage = lang
@@ -48,26 +48,64 @@ final class TranslationService: ObservableObject {
         db.setSetting("translation_language", value: language.id)
     }
 
-    /// Fetch word-by-word translation for a single verse.
-    /// Returns dict keyed by 0-based word index → translation string.
-    func fetchWordTranslations(surah: Int, verse: Int) async -> [Int: String] {
-        let langId = selectedLanguage.id
-        let verseKey = "\(surah):\(verse)"
+    // MARK: - Full Verse Translation
 
-        // Check word-level cache
-        let wordCacheKey = "words_\(langId)"
+    /// Fetch the full translation text for a single verse in the selected language.
+    /// Returns nil if English (use the bundled DB text) or on failure.
+    func fetchVerseTranslation(surah: Int, verse: Int) async -> String? {
+        let lang = selectedLanguage
+        // English is already bundled in DB — no network call needed
+        if lang.id == "en.sahih" { return nil }
+
+        let verseKey = "\(surah):\(verse)"
+        let cacheKey = lang.id
+
+        if let cached = cache[cacheKey]?[verseKey] {
+            return cached
+        }
+
+        let urlStr = "https://api.quran.com/api/v4/verses/by_key/\(verseKey)?translations=\(lang.quranComTranslationId)"
+        guard let url = URL(string: urlStr) else { return nil }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            guard let verseObj = json?["verse"] as? [String: Any],
+                  let translations = verseObj["translations"] as? [[String: Any]],
+                  let first = translations.first,
+                  let text = first["text"] as? String else { return nil }
+
+            // Strip any HTML tags that may be in the translation
+            let clean = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+            if cache[cacheKey] == nil { cache[cacheKey] = [:] }
+            cache[cacheKey]![verseKey] = clean
+            return clean
+        } catch {
+            return nil
+        }
+    }
+
+    // MARK: - Word-by-word Translation
+
+    /// Fetch word-by-word translation for a single verse in the selected language.
+    func fetchWordTranslations(surah: Int, verse: Int) async -> [Int: String] {
+        let lang = selectedLanguage
+        let verseKey = "\(surah):\(verse)"
+        let wordCacheKey = "words_\(lang.id)"
+
         if let cached = cache[wordCacheKey]?[verseKey] {
             return parseWordCache(cached)
         }
 
-        let urlStr = "https://api.quran.com/api/v4/verses/by_key/\(verseKey)?words=true&translation_fields=text&word_fields=text_uthmani,translation"
+        // Use language-specific translation ID in the request
+        let urlStr = "https://api.quran.com/api/v4/verses/by_key/\(verseKey)?words=true&translation_fields=text&word_fields=text_uthmani,translation&translations=\(lang.quranComTranslationId)"
         guard let url = URL(string: urlStr) else { return [:] }
 
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-            guard let verse = json?["verse"] as? [String: Any],
-                  let words = verse["words"] as? [[String: Any]] else { return [:] }
+            guard let verseObj = json?["verse"] as? [String: Any],
+                  let words = verseObj["words"] as? [[String: Any]] else { return [:] }
 
             var result: [Int: String] = [:]
             for (index, word) in words.enumerated() {

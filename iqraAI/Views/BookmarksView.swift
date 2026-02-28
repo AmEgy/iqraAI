@@ -46,7 +46,7 @@ struct BookmarksView: View {
         List {
             ForEach(quranVM.bookmarks) { bookmark in
                 NavigationLink {
-                    VerseReaderView(surahNumber: bookmark.surahNumber)
+                    VerseReaderView(surahNumber: bookmark.surahNumber, initialVerse: bookmark.verseNumber)
                 } label: {
                     bookmarkRow(bookmark)
                 }
