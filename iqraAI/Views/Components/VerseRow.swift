@@ -110,6 +110,55 @@ struct VerseRow: View {
         }
     }
 
+    // MARK: - Subviews
+
+    private var verseNumberBar: some View {
+        HStack {
+            Text(verse.verseKey)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 2)
+                .background(Capsule().fill(.secondary.opacity(0.1)))
+
+            Text("Juz \(verse.juzNumber)")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+
+            Spacer()
+
+            // Bookmark
+            Button {
+                quranVM.toggleBookmark(surah: verse.surahNumber, verse: verse.verseNumber)
+            } label: {
+                Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
+                    .font(.body)
+                    .foregroundStyle(isBookmarked ? .green : .secondary)
+            }
+            .buttonStyle(.plain)
+
+            // Play button — plays from this verse to end of surah
+            Button {
+                if isCurrentlyPlaying {
+                    audioPlayer.togglePlayPause()
+                } else {
+                    let total = resolvedTotalVerses
+                    audioPlayer.playSurah(
+                        surah: verse.surahNumber,
+                        fromVerse: verse.verseNumber,
+                        totalVerses: total
+                    )
+                }
+            } label: {
+                Image(systemName: isCurrentlyPlaying && audioPlayer.isPlaying
+                      ? "pause.circle.fill" : "play.circle.fill")
+                    .font(.title3)
+                    .foregroundStyle(isCurrentlyPlaying ? .green : .green.opacity(0.7))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
     // MARK: - Arabic Text
     // Rendered as a single text run so Arabic font shaping and RTL line-wrapping
     // work correctly. Never split into individual word views — that breaks shaping.
