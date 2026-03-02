@@ -18,8 +18,7 @@ struct VerseRow: View {
     @ObservedObject private var translationService = TranslationService.shared
 
     @State private var showActions: Bool = false
-    @State private var tappedWordIndex: Int? = nil
-    @State private var wordTranslations: [Int: String] = [:]
+    @State private var showWordByWord: Bool = false
     @State private var transliterationText: String? = nil
     @State private var fetchedTranslation: String? = nil
 
@@ -67,6 +66,10 @@ struct VerseRow: View {
             Button(isBookmarked ? "Remove Bookmark" : "Add Bookmark") {
                 quranVM.toggleBookmark(surah: verse.surahNumber, verse: verse.verseNumber)
             }
+            // Word by Word — PRD QR-04 (moved from in-text tap to here to preserve Arabic rendering)
+            Button("Word by Word") {
+                showWordByWord = true
+            }
             Button("Play from Here") {
                 let total = resolvedTotalVerses
                 audioPlayer.playSurah(
@@ -88,19 +91,10 @@ struct VerseRow: View {
             }
             Button("Cancel", role: .cancel) {}
         }
-        // Word-by-word popover (PRD QR-04)
-        .popover(isPresented: Binding(
-            get: { tappedWordIndex != nil },
-            set: { if !$0 { tappedWordIndex = nil } }
-        )) {
-            if let idx = tappedWordIndex {
-                WordPopoverView(
-                    word: arabicWords[safe: idx] ?? "",
-                    translation: wordTranslations[idx] ?? "Loading…",
-                    wordIndex: idx + 1,
-                    total: arabicWords.count
-                )
-            }
+        // Word by Word sheet (PRD QR-04)
+        .sheet(isPresented: $showWordByWord) {
+            WordByWordView(verse: verse)
+                .environmentObject(settingsVM)
         }
         .task(id: settingsVM.showTransliteration) {
             if settingsVM.showTransliteration && transliterationText == nil {
@@ -116,100 +110,48 @@ struct VerseRow: View {
         }
     }
 
-    // MARK: - Arabic words helper
-
-    private var arabicWords: [String] {
-        verse.textArabic.components(separatedBy: " ")
-    }
-
-    // MARK: - Subviews
-
-    private var verseNumberBar: some View {
-        HStack {
-            Text(verse.verseKey)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 2)
-                .background(Capsule().fill(.secondary.opacity(0.1)))
-
-            Text("Juz \(verse.juzNumber)")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-
-            Spacer()
-
-            // Bookmark
-            Button {
-                quranVM.toggleBookmark(surah: verse.surahNumber, verse: verse.verseNumber)
-            } label: {
-                Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
-                    .font(.body)
-                    .foregroundStyle(isBookmarked ? .green : .secondary)
-            }
-            .buttonStyle(.plain)
-
-            // Play button — plays from this verse to end of surah
-            Button {
-                if isCurrentlyPlaying {
-                    audioPlayer.togglePlayPause()
-                } else {
-                    let total = resolvedTotalVerses
-                    audioPlayer.playSurah(
-                        surah: verse.surahNumber,
-                        fromVerse: verse.verseNumber,
-                        totalVerses: total
-                    )
-                }
-            } label: {
-                Image(systemName: isCurrentlyPlaying && audioPlayer.isPlaying
-                      ? "pause.circle.fill" : "play.circle.fill")
-                    .font(.title3)
-                    .foregroundStyle(isCurrentlyPlaying ? .green : .green.opacity(0.7))
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
     // MARK: - Arabic Text
-    // Always renders tappable words so the word-meaning popover always works.
-    // Word-level highlighting takes priority when audio is playing with timestamps.
+    // Rendered as a single text run so Arabic font shaping and RTL line-wrapping
+    // work correctly. Never split into individual word views — that breaks shaping.
 
     private var arabicText: some View {
         let verseEndMarker = " \u{06DD}\(verse.arabicVerseNumber)"
 
+        // Word-highlight mode during audio playback with timestamps
         if isCurrentlyPlaying && !audioPlayer.wordTimestamps.isEmpty {
             return AnyView(highlightedArabicText(verseEndMarker: verseEndMarker))
         }
 
-        return AnyView(tappableArabicText(verseEndMarker: verseEndMarker))
-    }
-
-    /// Tappable word-by-word Arabic text.
-    /// Each word tap opens the translation popover (PRD QR-04).
-    private func tappableArabicText(verseEndMarker: String) -> some View {
-        let words = arabicWords
-        return HStack(spacing: 4) {
-            ForEach(words.indices.reversed(), id: \.self) { index in
-                Text(words[index])
-                    .font(.custom(AppConstants.arabicFontName, size: settingsVM.fontSize, relativeTo: .title))
-                    .foregroundStyle(settingsVM.theme.textColor)
-                    .onTapGesture {
-                        tappedWordIndex = index
-                        Task { await loadWordTranslations() }
-                    }
-            }
-            Text(verseEndMarker)
-                .font(.custom(AppConstants.arabicFontName, size: settingsVM.fontSize, relativeTo: .title))
-                .foregroundStyle(settingsVM.theme.textColor.opacity(0.5))
+        // Tajweed colored text
+        if settingsVM.showTajweedColors, let tajweedText = verse.textTajweed, !tajweedText.isEmpty {
+            return AnyView(
+                TajweedParser.coloredText(
+                    from: tajweedText,
+                    fontSize: settingsVM.fontSize,
+                    theme: settingsVM.theme,
+                    showTajweed: true
+                )
+                .multilineTextAlignment(.trailing)
+                .lineSpacing(settingsVM.fontSize * 0.5)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .environment(\.layoutDirection, .rightToLeft)
+            )
         }
-        .frame(maxWidth: .infinity, alignment: .trailing)
-        .environment(\.layoutDirection, .rightToLeft)
-        .lineSpacing(settingsVM.fontSize * 0.5)
+
+        // Plain Arabic — single Text view for correct shaping and RTL wrapping
+        return AnyView(
+            Text(verse.textArabic + verseEndMarker)
+                .font(.custom(AppConstants.arabicFontName, size: settingsVM.fontSize, relativeTo: .title))
+                .foregroundStyle(settingsVM.theme.textColor)
+                .multilineTextAlignment(.trailing)
+                .lineSpacing(settingsVM.fontSize * 0.5)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .environment(\.layoutDirection, .rightToLeft)
+        )
     }
 
     private func highlightedArabicText(verseEndMarker: String) -> some View {
-        let words = arabicWords
+        let words = verse.textArabic.components(separatedBy: " ")
         let highlighted = audioPlayer.highlightedWordIndex
 
         var fullText = Text("")
@@ -246,14 +188,6 @@ struct VerseRow: View {
 
     // MARK: - Data loading
 
-    private func loadWordTranslations() async {
-        let results = await TranslationService.shared.fetchWordTranslations(
-            surah: verse.surahNumber,
-            verse: verse.verseNumber
-        )
-        wordTranslations = results
-    }
-
     private func loadTransliteration() async {
         let urlStr = "https://api.quran.com/api/v4/verses/by_key/\(verse.verseKey)?words=true&word_fields=transliteration"
         guard let url = URL(string: urlStr) else { return }
@@ -273,42 +207,128 @@ struct VerseRow: View {
     }
 }
 
-// MARK: - Word Popover (PRD QR-04)
+// MARK: - Word by Word Sheet (PRD QR-04)
+// Each word displayed individually with its translation below.
+// Shown as a sheet from the verse action sheet ("Word by Word" button).
 
-private struct WordPopoverView: View {
-    let word: String
-    let translation: String
-    let wordIndex: Int
-    let total: Int
+struct WordByWordView: View {
+
+    let verse: Verse
+    @EnvironmentObject var settingsVM: SettingsViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var words: [(arabic: String, translation: String, transliteration: String)] = []
+    @State private var isLoading = true
 
     var body: some View {
-        VStack(spacing: 12) {
-            Text(word)
-                .font(.system(size: 32, weight: .regular))
-                .environment(\.layoutDirection, .rightToLeft)
-                .foregroundStyle(.primary)
-
-            Divider()
-
-            Text(translation)
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-
-            Text("Word \(wordIndex) of \(total)")
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
+        NavigationStack {
+            Group {
+                if isLoading {
+                    ProgressView("Loading word meanings…")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ScrollView {
+                        // RTL flow: words displayed right-to-left in a wrapping grid
+                        LazyVGrid(
+                            columns: [GridItem(.adaptive(minimum: 100, maximum: 140))],
+                            spacing: 12
+                        ) {
+                            ForEach(words.indices, id: \.self) { i in
+                                WordCard(
+                                    arabic: words[i].arabic,
+                                    translation: words[i].translation,
+                                    transliteration: words[i].transliteration,
+                                    index: i + 1,
+                                    fontSize: settingsVM.fontSize
+                                )
+                            }
+                        }
+                        .padding()
+                        .environment(\.layoutDirection, .rightToLeft)
+                    }
+                }
+            }
+            .navigationTitle("\(verse.verseKey) — Word by Word")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
         }
-        .padding(20)
-        .frame(minWidth: 200, maxWidth: 280)
-        .presentationCompactAdaptation(.popover)
+        .task { await loadWords() }
+    }
+
+    private func loadWords() async {
+        let langId = TranslationService.shared.selectedLanguage.id
+        let urlStr = "https://api.quran.com/api/v4/verses/by_key/\(verse.verseKey)?words=true&word_fields=text_uthmani,transliteration,translation&translation_fields=text&translations=\(langId)"
+        guard let url = URL(string: urlStr) else { isLoading = false; return }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            guard let v = json?["verse"] as? [String: Any],
+                  let rawWords = v["words"] as? [[String: Any]] else {
+                isLoading = false; return
+            }
+
+            words = rawWords.compactMap { w in
+                // Skip the verse-end glyph (type = "end")
+                guard (w["char_type_name"] as? String) != "end" else { return nil }
+                let arabic = w["text_uthmani"] as? String ?? (w["text"] as? String ?? "")
+                let translit: String
+                if let t = w["transliteration"] as? [String: Any] { translit = t["text"] as? String ?? "" }
+                else { translit = w["transliteration"] as? String ?? "" }
+                let meaning: String
+                if let t = w["translation"] as? [String: Any] { meaning = t["text"] as? String ?? "" }
+                else { meaning = "" }
+                return (arabic: arabic, translation: meaning, transliteration: translit)
+            }
+        } catch {}
+
+        isLoading = false
     }
 }
 
-// MARK: - Safe Array Subscript
+// MARK: - Word Card
 
-private extension Array {
-    subscript(safe index: Int) -> Element? {
-        indices.contains(index) ? self[index] : nil
+private struct WordCard: View {
+    let arabic: String
+    let translation: String
+    let transliteration: String
+    let index: Int
+    let fontSize: CGFloat
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Text(arabic)
+                .font(.custom(AppConstants.arabicFontName, size: min(fontSize, 28), relativeTo: .title2))
+                .multilineTextAlignment(.center)
+                .environment(\.layoutDirection, .rightToLeft)
+
+            if !transliteration.isEmpty {
+                Text(transliteration)
+                    .font(.caption2.italic())
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            if !translation.isEmpty {
+                Text(translation)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.green)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(.green.opacity(0.06))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .strokeBorder(.green.opacity(0.15), lineWidth: 1)
+                )
+        )
     }
 }
