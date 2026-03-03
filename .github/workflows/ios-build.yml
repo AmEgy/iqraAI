@@ -88,7 +88,7 @@ jobs:
       # key as APPETIZE_PUBLIC_KEY secret to always update the same link.
       - name: Upload to Appetize.io
         id: appetize
-        if: success() && github.ref == 'refs/heads/main' && env.APPETIZE_API_KEY != ''
+        if: success() && github.ref == 'refs/heads/main' && secrets.APPETIZE_API_KEY != ''
         env:
           APPETIZE_API_KEY: ${{ secrets.APPETIZE_API_KEY }}
           APPETIZE_PUBLIC_KEY: ${{ secrets.APPETIZE_PUBLIC_KEY }}
