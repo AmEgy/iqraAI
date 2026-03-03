@@ -12,19 +12,49 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # ── 2. Cache Swift Package Manager dependencies ─────────────────────
+      # Avoids re-downloading GRDB on every run (~30-60s saved per build)
+      - name: Cache SPM packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+            iqraAI.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
+          key: ${{ runner.os }}-spm-${{ hashFiles('iqraAI.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      # ── 3. Show environment (useful for debugging) ──────────────────────
       - name: Show build environment
         run: |
           xcodebuild -version
           swift --version
-          xcodebuild -showsdks
           xcodebuild -list -project iqraAI.xcodeproj
 
+      # ── 4. SwiftLint ────────────────────────────────────────────────────
+      # Reports issues as GitHub annotations but does NOT fail the build.
+      # Add --strict to make it fail on violations when ready.
+      - name: SwiftLint
+        run: |
+          if which swiftlint &>/dev/null; then
+            swiftlint lint --reporter github-actions-logging || true
+          else
+            brew install swiftlint --quiet
+            swiftlint lint --reporter github-actions-logging || true
+          fi
+
+      # ── 5. Install xcpretty ─────────────────────────────────────────────
       - name: Install xcpretty
         run: gem install xcpretty --no-document
 
+      # ── 6. Build ────────────────────────────────────────────────────────
+      # -sdk iphonesimulator: builds against simulator SDK, no runtime needed
+      # IPHONEOS_DEPLOYMENT_TARGET=17.0: overrides project's Xcode 26 value
+      # -derivedDataPath: explicit path so we can find the .app afterward
       - name: Build (no signing)
         run: |
           set -o pipefail
@@ -33,6 +63,7 @@ jobs:
             -scheme iqraAI \
             -sdk iphonesimulator \
             -configuration Debug \
+            -derivedDataPath "$GITHUB_WORKSPACE/DerivedData" \
             ONLY_ACTIVE_ARCH=NO \
             IPHONEOS_DEPLOYMENT_TARGET=17.0 \
             CODE_SIGN_IDENTITY="" \
@@ -40,10 +71,73 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty
 
+      # ── 7. Upload .app as downloadable artifact ─────────────────────────
+      # Lets you download and drag into Simulator locally, or feed to Appetize.
+      # Kept for 7 days. Named with the commit SHA so each build is traceable.
+      - name: Upload .app artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iqraAI-sim-${{ github.sha }}
+          path: DerivedData/Build/Products/Debug-iphonesimulator/iqraAI.app
+          retention-days: 7
+
+      # ── 8. Upload to Appetize.io ────────────────────────────────────────
+      # Only runs on pushes to main (not PRs) and only if the secret exists.
+      # First push: creates a new app and prints the public key — add that
+      # key as APPETIZE_PUBLIC_KEY secret to always update the same link.
+      - name: Upload to Appetize.io
+        id: appetize
+        if: success() && github.ref == 'refs/heads/main' && env.APPETIZE_API_KEY != ''
+        env:
+          APPETIZE_API_KEY: ${{ secrets.APPETIZE_API_KEY }}
+          APPETIZE_PUBLIC_KEY: ${{ secrets.APPETIZE_PUBLIC_KEY }}
+        run: |
+          cd "$GITHUB_WORKSPACE/DerivedData/Build/Products/Debug-iphonesimulator"
+          zip -r iqraAI.zip iqraAI.app
+
+          # Update existing app if we have a public key; otherwise create new
+          if [ -n "$APPETIZE_PUBLIC_KEY" ]; then
+            ENDPOINT="https://api.appetize.io/v1/apps/$APPETIZE_PUBLIC_KEY"
+          else
+            ENDPOINT="https://api.appetize.io/v1/apps"
+          fi
+
+          RESPONSE=$(curl -s -X POST "$ENDPOINT" \
+            -u "$APPETIZE_API_KEY:" \
+            -F "file=@iqraAI.zip" \
+            -F "platform=ios" \
+            -F "note=Commit ${{ github.sha }} — ${{ github.event.head_commit.message }}")
+
+          echo "Appetize response: $RESPONSE"
+
+          PUBLIC_KEY=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('publicKey',''))")
+          APPETIZE_URL="https://appetize.io/app/$PUBLIC_KEY"
+
+          echo "url=$APPETIZE_URL" >> "$GITHUB_OUTPUT"
+
+          # Appears in the Actions run summary — click to open the app
+          {
+            echo "### 📱 Live Preview — Appetize.io"
+            echo ""
+            echo "**[▶ Open App in Browser]($APPETIZE_URL)**"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Commit | \`${{ github.sha }}\` |"
+            echo "| Branch | \`${{ github.ref_name }}\` |"
+            echo "| Public key | \`$PUBLIC_KEY\` |"
+            echo ""
+            echo "> **First time?** Add \`$PUBLIC_KEY\` as \`APPETIZE_PUBLIC_KEY\`"
+            echo "> in GitHub repo Settings → Secrets → Actions."
+            echo "> Future pushes will update the same link."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # ── 9. Upload build logs on failure ────────────────────────────────
       - name: Upload build logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: build-logs
-          path: ~/Library/Developer/Xcode/DerivedData/**/Logs/Build/*.xcactivitylog
+          name: build-logs-${{ github.sha }}
+          path: DerivedData/**/Logs/Build/*.xcactivitylog
           if-no-files-found: ignore
